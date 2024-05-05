@@ -46,3 +46,4 @@ TEST(Mutable, CanSyncThroughRegistry) {
   EXPECT_EQ(42, mutator_int.get());
   EXPECT_EQ(42, mutable_int->get());
 }
+

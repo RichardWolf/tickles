@@ -26,4 +26,4 @@ cc_test(name="behavior_tree_test",
 
 cc_test(name="robot_test",
         srcs=["robot.cc"],
-        deps=[":node", "@googletest//:gtest_main"])
+        deps=[":tickles", "@googletest//:gtest_main"])

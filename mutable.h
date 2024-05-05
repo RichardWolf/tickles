@@ -45,6 +45,7 @@ namespace tickles {
 
     template <typename U>
     void set(U&& u) {
+      if (u == _next) return;
       _dirty = true;
       _next = std::move(u);
     }

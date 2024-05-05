@@ -1,4 +1,4 @@
-#include "node.h"
+#include "behavior_tree.h"
 
 namespace tickles {
 

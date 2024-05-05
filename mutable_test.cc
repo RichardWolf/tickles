@@ -38,12 +38,14 @@ TEST(Mutable, CanSyncThroughRegistry) {
   auto mutable_int = injector.create<std::shared_ptr<Mutable<int>>>();
   auto mutator_int = injector.create<Mutator<int>>();
   auto registry = injector.create<std::shared_ptr<MutableRegistry>>();
+  mutable_int->set(42);
+  mutable_int->sync();
     
   EXPECT_EQ(false, registry->sync());
   
-  mutator_int.set(42);
+  mutator_int.set(43);
   EXPECT_EQ(true, registry->sync());
-  EXPECT_EQ(42, mutator_int.get());
-  EXPECT_EQ(42, mutable_int->get());
+  EXPECT_EQ(43, mutator_int.get());
+  EXPECT_EQ(43, mutable_int->get());
 }
 

@@ -32,6 +32,19 @@ TEST(Mutable, MutatorUnchangedUntilSync) {
   EXPECT_EQ(42, mutable_int->get());
 }
 
+
+TEST(Mutable, MutatorSyncReturnsFalseWhenSetToEqualValue) {
+  auto injector = di::make_injector();
+  
+  auto mutable_int = injector.create<std::shared_ptr<Mutable<int>>>();
+  auto mutator_int = injector.create<Mutator<int>>();
+  mutator_int.set(42);
+  mutator_int.sync();
+  mutator_int.set(42);
+  EXPECT_EQ(false, mutable_int->sync());
+}
+
+
 TEST(Mutable, CanSyncThroughRegistry) {
   auto injector = di::make_injector();
   

@@ -155,7 +155,6 @@ TEST_F(TestRobot, BatteryFull) {
   EXPECT_EQ(robot.movement(), 10);
 }
 
-
 TEST_F(TestRobot, BatteryLow) {
   robot.position({5, 4});
   robot.charge({0.199});

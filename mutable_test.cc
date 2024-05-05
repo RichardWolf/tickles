@@ -39,7 +39,7 @@ TEST(Mutable, MutatorSyncReturnsFalseWhenSetToEqualValue) {
   auto mutable_int = injector.create<std::shared_ptr<Mutable<int>>>();
   auto mutator_int = injector.create<Mutator<int>>();
   mutator_int.set(42);
-  mutable_int->bsync();
+  mutable_int->sync();
   mutator_int.set(42);
   EXPECT_EQ(false, mutable_int->sync());
 }

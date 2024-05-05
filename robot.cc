@@ -22,22 +22,22 @@ constexpr double kMinBattery = 0.2;
 
 namespace di = boost::di;
 
-struct RobotPosition {
+struct Position {
   int position;
   int velocity;
 };
 
-struct RobotCharge {
+struct Charge {
   operator double() const {return charge;}
   double charge = 1;
 };
 
-struct RobotChargingState {
+struct ChargingState {
   operator bool() const {return is_charging;}
   bool is_charging = false;
 };
 
-struct RobotMovement {
+struct Movement {
   operator int() const {return velocity;}
   int velocity;
 };
@@ -48,32 +48,32 @@ const T& collar(const T& value, const T& min, const T& max) {
 }
 
 struct MoveToRechargeStation {
-  RobotPosition const& position;
-  Mutator<RobotMovement>& mut_movement;
+  Position const& position;
+  Mutator<Movement>& mut_movement;
   
   Result operator()() const {
     if (position.position == kRechargePosition) {
-      mut_movement.set(RobotMovement{.velocity=0});
+      mut_movement.set(Movement{.velocity=0});
       return Result::Running;
     }
     auto distance = -position.position;
-    mut_movement.set(RobotMovement{.velocity=collar(distance, -kMaxSpeed, kMaxSpeed)});
+    mut_movement.set(Movement{.velocity=collar(distance, -kMaxSpeed, kMaxSpeed)});
 
     return Result::Running;
   };
 };
 
 struct BatteryOk{
-  Mutator<RobotChargingState> charging_state;
-  RobotCharge const& charge;
+  Mutator<ChargingState> charging_state;
+  Charge const& charge;
   
   Result operator()() const {
     if (charge >= 1.0) {
-      charging_state.set(RobotChargingState{false});
+      charging_state.set(ChargingState{false});
       return Result::Succeeded;
     }
     if (charge.charge <= kMinBattery || charging_state.get()) {
-      charging_state.set(RobotChargingState{true});
+      charging_state.set(ChargingState{true});
       return Result::Failed;
     }
     return Result::Succeeded;
@@ -81,11 +81,11 @@ struct BatteryOk{
 };
 
 struct GoAboutBusiness {
-  Mutator<RobotMovement> movement;
-  RobotPosition const& position;
+  Mutator<Movement> movement;
+  Position const& position;
   Result operator()() const {
     if (position.position < 500) {
-      movement.set(RobotMovement{.velocity = 10});
+      movement.set(Movement{.velocity = 10});
     }
     return Result::Running;
   }
@@ -104,28 +104,28 @@ struct RobotAutonomy {
 public:
   RobotAutonomy() : _data(init_data()) {}
 
-  void position(RobotPosition const& position)  {
+  void position(Position const& position)  {
     *_data.position = position;
     sync();
   }
 
-  void charge(RobotCharge const& charge) {
+  void charge(Charge const& charge) {
     *_data.charge = charge;
     sync();
   }
 
-  RobotMovement const& movement() const {
+  Movement const& movement() const {
     return _data.movement->get();
   }
   
 private:
   struct data {
     // Inputs
-    std::shared_ptr<RobotPosition> position;
-    std::shared_ptr<RobotCharge> charge;
+    std::shared_ptr<Position> position;
+    std::shared_ptr<Charge> charge;
 
     // Outputs
-    std::shared_ptr<const Mutable<RobotMovement>> movement;
+    std::shared_ptr<const Mutable<Movement>> movement;
 
     // Output registry
     std::shared_ptr<MutableRegistry> mutable_registry;
@@ -150,7 +150,7 @@ struct TestRobot : testing::Test {
 };
 
 TEST_F(TestRobot, BatteryFull) {
-  robot.charge(RobotCharge{1.0});
+  robot.charge(Charge{1.0});
   robot.position({5,3});
   EXPECT_EQ(robot.movement(), 10);
 }

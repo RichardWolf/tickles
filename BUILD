@@ -15,6 +15,7 @@ cc_library(name="behavior_tree",
                  ":mutable"])
 
 cc_library(name="tickles",
+           hdrs = ["autonomy.h"],
            deps=[":mutable",
                  ":behavior_tree"])
 

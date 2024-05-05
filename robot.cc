@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 
 #include "behavior_tree.h"
+#include "autonomy.h"
 #include "mutable.h"
 #include "boost/di.hpp"
 
@@ -15,6 +16,7 @@ using tickles::Sequence;
 using tickles::Mutable;
 using tickles::MutableRegistry;
 using tickles::Mutator;
+using tickles::Autonomy;
 
 constexpr int kRechargePosition = 0;
 constexpr int kMaxSpeed = 5;
@@ -99,49 +101,33 @@ struct RobotBehaviorTree :
   tickles::Sequence<EnsureBattery,
 		    GoAboutBusiness> {};
 
+struct RobotData {
+  // Inputs
+  std::shared_ptr<Position> position;
+  std::shared_ptr<Charge> charge;
+  
+  // Outputs
+  std::shared_ptr<const Mutable<Movement>> movement;
+};
 
-struct RobotAutonomy {
+class RobotAutonomy : Autonomy<RobotData, RobotBehaviorTree> {
 public:
-  RobotAutonomy() : _data(init_data()) {}
-
+  RobotAutonomy(){}
+  RobotAutonomy(RobotAutonomy const&) = delete;
+  RobotAutonomy(RobotAutonomy &&) = delete;
+  
   void position(Position const& position)  {
-    *_data.position = position;
+    *data().position = position;
     sync();
   }
 
   void charge(Charge const& charge) {
-    *_data.charge = charge;
+    *data().charge = charge;
     sync();
   }
 
   Movement const& movement() const {
-    return _data.movement->get();
-  }
-  
-private:
-  struct data {
-    // Inputs
-    std::shared_ptr<Position> position;
-    std::shared_ptr<Charge> charge;
-
-    // Outputs
-    std::shared_ptr<const Mutable<Movement>> movement;
-
-    // Output registry
-    std::shared_ptr<MutableRegistry> mutable_registry;
-
-    // Behavior Tree
-    RobotBehaviorTree bt;
-  } _data;
-  
-  data init_data() {
-    return di::make_injector().create<data>();
-  }
-
-  void sync() {
-    do {
-      _data.bt();
-    } while (_data.mutable_registry->sync());
+    return data().movement->get();
   }
 };
 

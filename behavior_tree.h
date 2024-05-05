@@ -15,7 +15,7 @@ namespace tickles {
   
   std::ostream& operator<<(std::ostream& os, Result r);
 
-  
+
   struct AlwaysRunning{ Result operator()() const {return Result::Running;}};
   struct AlwaysSucceeded{ Result operator()() const {return Result::Succeeded;}};
   struct AlwaysFailed{ Result operator()() const {return Result::Failed;}};

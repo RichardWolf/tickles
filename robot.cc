@@ -49,10 +49,7 @@ const T& collar(const T& value, const T& min, const T& max) {
 
 struct MoveToRechargeStation {
   RobotPosition const& position;
-  RobotCharge const& charge;
-  RobotMovement const& movement;
   Mutator<RobotMovement>& mut_movement;
-  Mutator<RobotChargingState>& charging_state;
   
   Result operator()() const {
     if (position.position == kRechargePosition) {
@@ -129,6 +126,8 @@ private:
 
     // Outputs
     std::shared_ptr<const Mutable<RobotMovement>> movement;
+
+    // Output registry
     std::shared_ptr<MutableRegistry> mutable_registry;
 
     // Behavior Tree

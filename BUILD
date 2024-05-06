@@ -28,3 +28,10 @@ cc_test(name="behavior_tree_test",
 cc_test(name="robot_test",
         srcs=["robot.cc"],
         deps=[":tickles", "@googletest//:gtest_main"])
+
+cc_test(name="foo_test",
+        srcs=["foo.cc"],
+        deps=[":tickles",
+              "//boost:di",
+              "@googletest//:gtest_main"])
+

@@ -20,7 +20,11 @@ namespace tickles {
   struct AlwaysSucceeded{ Result operator()() const {return Result::Succeeded;}};
   struct AlwaysFailed{ Result operator()() const {return Result::Failed;}};
 
-  template<typename... Children>
+
+  template <typename T>
+  concept BehaviorTreeNode = requires (T t) {Result{t()};};
+
+  template<BehaviorTreeNode... Children> 
   class Parallel {
   public:
     Parallel(Children&&... children): children(std::forward<Children>(children)...){}
@@ -31,9 +35,13 @@ namespace tickles {
       return in_parallel<0>();
     }
   private:
-    
+      
     template<int i>
-    Result in_parallel(typename std::enable_if<i < sizeof...(Children)>::type* = 0) const {
+    Result in_parallel() const requires(i >= sizeof...(Children)) {
+      return Result::Succeeded;
+    }
+    template<int i>
+    Result in_parallel() const requires (i < sizeof...(Children)) {
       Result ith_result = std::get<i>(children)();
       if (ith_result == Result::Failed) return Result::Failed;
       Result rest_result = in_parallel<i+1>();
@@ -41,18 +49,12 @@ namespace tickles {
 	ith_result == Result::Succeeded && rest_result == Result::Succeeded ? Result::Succeeded :
 	Result::Running;
     }
-      
-    template<int i>
-    Result in_parallel(
-		       typename std::enable_if<i >= sizeof...(Children)>::type* = 0 ) const {
-      return Result::Succeeded;
-    }
     
     std::tuple<Children...> children;
   };
 
   
-  template<typename... Children>
+  template<BehaviorTreeNode... Children>
   class Sequence {
   public:
     Sequence(Children&&... children): children(std::forward<Children>(children)...){}
@@ -65,12 +67,11 @@ namespace tickles {
 
   private:
     template<int i>
-    typename std::enable_if<i >= sizeof...(Children), Result>::type in_sequence() const {
+      Result in_sequence() const requires (i >= sizeof...(Children)) {
       return Result::Succeeded;
     }
-
     template<int i>
-    typename std::enable_if<i < sizeof...(Children), Result>::type in_sequence() const {
+    Result in_sequence() const requires (i < sizeof...(Children)) {
       Result first_result = std::get<i>(children)();
       if (first_result == Result::Succeeded) return in_sequence<i+1>();
       return first_result;
@@ -79,7 +80,7 @@ namespace tickles {
     std::tuple<Children...> children;
   };
   
-  template<typename... Children>
+  template<BehaviorTreeNode... Children>
   class FallBack {
   public:
     FallBack(Children&&... children): children(std::forward<Children>(children)...){}
@@ -91,13 +92,12 @@ namespace tickles {
     }
 
   private:
-    template<int i>
-    typename std::enable_if<i >= sizeof...(Children), Result>::type fall_back() const {
+    template <int i>
+    Result fall_back() const requires(i >= sizeof...(Children)) {
       return Result::Failed;
     }
-
     template<int i>
-    typename std::enable_if<i < sizeof...(Children), Result>::type fall_back() const {
+    Result fall_back() const requires (i < sizeof...(Children)) {
       Result first_result = std::get<i>(children)();
       if (first_result == Result::Failed) return fall_back<i+1>();
       return first_result;
